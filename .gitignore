@@ -1,4 +1,8 @@
 #
 *.pyc
-*.py~
-*.sw*
+#*.py~
+*.sw?
+#*.txt~
+#.gitignore~
+#.gitignore.sw*
+*~
