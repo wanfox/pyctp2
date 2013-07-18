@@ -6,3 +6,4 @@
 #.gitignore~
 #.gitignore.sw*
 *~
+*.log
