@@ -259,6 +259,173 @@ class ModuleTest(unittest.TestCase):
         a.append(100)
         self.assertEquals([1,1,1,2,3,4,5,6,7,8,9],REF(a,2))
 
+    def test_minute_1(self):
+        m1 = MINUTE_1([])
+        self.assertEquals([],m1.sclose)
+
+        ticks = [TICK(),TICK(),TICK(),TICK()]
+        ticks[0].price = 100
+        ticks[0].time = 91400000
+        ticks[0].date = 20120111
+        ticks[0].dvolume = 10
+        ticks[0].holding = 10
+        ticks[0].min1 = time2min(ticks[0].time)
+        ticks[1].price = 110
+        ticks[1].time = 91500000
+        ticks[1].date = 20120111
+        ticks[1].min1 = time2min(ticks[1].time)
+        ticks[1].dvolume = 30
+        ticks[1].holding = 11
+        ticks[2].price = 115
+        ticks[2].time = 91501000
+        ticks[2].date = 20120111
+        ticks[2].dvolume = 50
+        ticks[2].holding = 12
+        ticks[2].min1 = time2min(ticks[2].time)
+        ticks[3].price = 91
+        ticks[3].time = 91600000
+        ticks[3].date = 20120111
+        ticks[3].dvolume = 51
+        ticks[3].holding = 13
+        ticks[3].min1 = time2min(ticks[3].time)
+        m2 = MINUTE_1(ticks)
+        self.assertEquals(2,len(m2.sclose))
+        self.assertEquals([100,115],m2.sclose)
+        self.assertEquals([100,110],m2.slow)
+        self.assertEquals([100,115],m2.shigh)
+        self.assertEquals([914,915],m2.stime)
+        self.assertEquals([0,40],m2.svol)
+        self.assertTrue(m2.modified)
+        #
+        ticks.extend([TICK(),TICK(),TICK()])
+        ticks[4].price = 93
+        ticks[4].time = 91601000
+        ticks[4].date = 20120111
+        ticks[4].min1 = time2min(ticks[4].time)
+        ticks[4].dvolume = 80
+        ticks[4].holding = 10
+        ticks[5].price = 90
+        ticks[5].time = 91602000
+        ticks[5].date = 20120111
+        ticks[5].dvolume = 88
+        ticks[5].holding = 10
+        ticks[5].min1 = time2min(ticks[5].time)
+        ticks[6].price = 90
+        ticks[6].time = 91700000
+        ticks[6].date = 20120111
+        ticks[6].dvolume = 89
+        ticks[6].holding = 10
+        ticks[6].min1 = time2min(ticks[6].time)
+        m2 = MINUTE_1(ticks)
+        self.assertEquals([100,115,90],m2.sclose)
+        self.assertEquals([100,110,90],m2.slow)
+        self.assertEquals([100,115,93],m2.shigh)
+        self.assertEquals([914,915,916],m2.stime)
+        self.assertEquals([0,40,38],m2.svol)
+        self.assertTrue(m2.modified)
+        ##
+        ticks.append(TICK())
+        ticks[7].price = 91
+        ticks[7].time = 91701000
+        ticks[7].date = 20120111
+        ticks[7].dvolume = 81
+        ticks[7].holding = 10
+        ticks[7].min1 = time2min(ticks[7].time)
+        m2 = MINUTE_1(ticks)
+        self.assertFalse(m2.modified)
+        self.assertEquals([914,915,916],m2.stime)
+        ##测试终结符
+        ticks.append(TICK())
+        ticks[-1].price = 0
+        ticks[-1].time = 0
+        ticks[-1].date = 0
+        ticks[-1].dvolume = 0
+        ticks[-1].holding = 0
+        ticks[-1].min1 = time2min(ticks[-1].time)
+        m2 = MINUTE_1(ticks)
+        self.assertTrue(m2.modified)
+        self.assertEquals([914,915,916,917],m2.stime)
+        ##测试重复的终结符
+        ticks.append(TICK())
+        ticks[-1].price = 0
+        ticks[-1].time = 0
+        ticks[-1].date = 0
+        ticks[-1].dvolume = 0
+        ticks[-1].holding = 0
+        ticks[-1].min1 = time2min(ticks[-1].time)
+        m2 = MINUTE_1(ticks)
+        self.assertFalse(m2.modified)   #无变化
+        self.assertEquals([914,915,916,917],m2.stime)
+        ##测试pre_min
+        pre_min1 = BaseObject(sopen=[1],sclose=[10],shigh=[13],slow=[0],svol=[1000],stime=[919],sholding=[101],sdate=[914])
+        ticks = ticks[:4]
+        mm = MINUTE_1(ticks,pre_min1=pre_min1)
+        self.assertEquals([10,100,115],mm.sclose)
+        self.assertEquals([919,914,915],mm.stime)
+    def test_minute(self):
+        m1 = MINUTE([],[],[],[],[])
+        self.assertEquals([],m1.sclose)
+        prices = [100,110,115,91]
+        times = [91400000,91500000,91501000,91600000]
+        dates = [20120111,20120111,20120111,20120111]
+        dvols = [10,30,50,51]
+        holdings = [10,11,12,13]
+        m2 = MINUTE(dates,times,prices,dvols,holdings)
+        self.assertEquals(2,len(m2.sclose))
+        self.assertEquals([100,115],m2.sclose)
+        self.assertEquals([100,110],m2.slow)
+        self.assertEquals([100,115],m2.shigh)
+        self.assertEquals([914,915],m2.stime)
+        self.assertEquals([0,40],m2.svol)
+        self.assertTrue(m2.modified)
+        prices.extend([93,90,90])
+        times.extend([91601000,91602000,91700000])
+        dates.extend([20120111,20120111,20120111])
+        dvols.extend([80,88,89])
+        holdings.extend([10,10,10])
+        m2 = MINUTE(dates,times,prices,dvols,holdings)
+        self.assertEquals([100,115,90],m2.sclose)
+        self.assertEquals([100,110,90],m2.slow)
+        self.assertEquals([100,115,93],m2.shigh)
+        self.assertEquals([914,915,916],m2.stime)
+        self.assertEquals([0,40,38],m2.svol)
+        self.assertTrue(m2.modified)
+        prices.append(91)
+        times.append(91701000)
+        dates.append(20120111)
+        dvols.append(81)
+        holdings.append(10)
+        m2 = MINUTE(dates,times,prices,dvols,holdings)
+        self.assertFalse(m2.modified)
+        ##测试终结符
+        prices.extend([0])
+        times.extend([0])
+        dates.extend([0])
+        dvols.extend([0])
+        holdings.extend([0])
+        m2 = MINUTE(dates,times,prices,dvols,holdings)
+        self.assertTrue(m2.modified)
+        self.assertEquals([914,915,916,917],m2.stime)
+        ##测试重复的终结符
+        prices.extend([0])
+        times.extend([0])
+        dates.extend([0])
+        dvols.extend([0])
+        holdings.extend([0])
+        m2 = MINUTE(dates,times,prices,dvols,holdings)
+        self.assertFalse(m2.modified)   #无变化
+        self.assertEquals([914,915,916,917],m2.stime)
+        ###
+        pre_min1 = BaseObject(sopen=[1],sclose=[10],shigh=[13],slow=[0],svol=[1000],stime=[919],sholding=[101],sdate=[914])
+        prices = [100,110,115,91]
+        times = [91500000,91600000,91601000,91700000]
+        dates = [20120111,20120111,20120111,20120111]
+        dvols = [10,30,50,51]
+        holdings = [10,11,12,13]
+        mm = MINUTE(dates,times,prices,dvols,holdings,pre_min1=pre_min1)
+        self.assertEquals([10,100,115],mm.sclose)
+
+
 
 
 if __name__ == "__main__":

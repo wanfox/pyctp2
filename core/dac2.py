@@ -10,6 +10,7 @@ from collections import (
 from base import (
         BaseObject,
         indicator,
+        TICK,
     )
 
 from utils import (
@@ -540,3 +541,168 @@ def REF(source,offset=1,_ts=None):
         _ts.ref.append(source[i-offset])
 
     return _ts.ref
+
+####分钟切换
+time2min = lambda t:t/100000
+
+NullMinute = BaseObject(sopen=[],sclose=[],shigh=[],slow=[],svol=[],sholding=[],sdate=[],stime=[],modified=False)
+
+@indicator
+def MINUTE_1(ticks,pre_min1=None,_ts=None):
+    '''
+        分钟切分, 以ticks为参数
+        _ts用于暂存。同时可用于接续历史数据
+        如果pre_min1不为空，调用者需保证ticks[0].min1 > pre_min1.stime
+    '''
+
+    if len(ticks) == 0:
+        return NullMinute
+
+    if not _ts.initialized:
+        _ts.initialized = True
+        if pre_min1 == None:    #不接续
+            _ts.sopen = []
+            _ts.sclose = []
+            _ts.shigh = []
+            _ts.slow = []
+            _ts.svol = []
+            _ts.sholding=[]
+            _ts.sdate = []
+            _ts.stime = []
+        else:
+            _ts.sopen = pre_min1.sopen
+            _ts.sclose = pre_min1.sclose
+            _ts.shigh = pre_min1.shigh
+            _ts.slow = pre_min1.slow
+            _ts.svol = pre_min1.svol
+            _ts.sholding=pre_min1.sholding
+            _ts.sdate = pre_min1.sdate
+            _ts.stime = pre_min1.stime
+        _ts.cur = BaseObject(vopen = ticks[0].price,    
+                             vclose = ticks[0].price,   
+                             vhigh=ticks[0].price,      
+                             vlow=ticks[0].price,       
+                             open_dvol=ticks[0].dvolume,#存在初始误差
+                             close_dvol=ticks[0].dvolume,
+                             holding = ticks[0].holding,
+                             xtime=ticks[0].min1,    #当日第一min1
+                             xdate=ticks[0].date,
+                        )  #这里对dvol的处理,使得中断恢复也必须从当日最开始开始,否则所有前述成交量被归结到第一tick
+        _ts.ilast = 0
+        _ts.modified = False    #上周期完成标志
+
+    scur = _ts.cur
+    for i in range(_ts.ilast,len(ticks)):
+        tcur = ticks[i]
+        #print tcur.min1,scur.xtime
+        if tcur.min1 > scur.xtime or (tcur.min1 == 0 and scur.xtime > 0) or (tcur.date > scur.xdate and scur.xtime > 0):  #tcur.min1 = 0, 分钟切换用,要求其它字段均为0
+            if scur.xtime > 0:  #前一分钟不是切换标志
+                _ts.sopen.append(scur.vopen)
+                _ts.sclose.append(scur.vclose)
+                _ts.shigh.append(scur.vhigh)
+                _ts.slow.append(scur.vlow)
+                _ts.svol.append(scur.close_dvol - scur.open_dvol)
+                _ts.sholding.append(scur.holding)
+                _ts.sdate.append(scur.xdate)
+                _ts.stime.append(scur.xtime)
+            scur.vopen = scur.vclose = scur.vhigh = scur.vlow = tcur.price
+            scur.open_dvol = scur.close_dvol
+            scur.close_dvol = tcur.dvolume
+            scur.dvol = tcur.dvolume
+            scur.holding = tcur.holding
+            scur.xdate = tcur.date
+            scur.xtime = tcur.min1
+            _ts.modified = True
+        else:   #未切换
+            scur.vclose = tcur.price
+            scur.close_dvol = tcur.dvolume
+            scur.holding = tcur.holding
+            #print scur.xtime,'close:',scur.vclose
+            if tcur.price > scur.vhigh:
+                scur.vhigh = tcur.price
+            elif tcur.price < scur.vlow:
+                scur.vlow = tcur.price
+            _ts.modified = False
+
+    _ts.ilast = len(ticks)
+    return _ts
+
+@indicator
+def MINUTE(dates,times,prices,dvols,holdings,pre_min1=None,_ts=None):
+    '''
+        分钟切分, 参数不同
+        _ts用于暂存。同时可用于接续历史数据
+        如果pre_min1不为空，调用者需保证ticks[0].min1 > pre_min1.stime
+    '''
+
+    if len(prices) == 0:
+        return NullMinute
+
+    if not _ts.initialized:
+        _ts.initialized = True
+        if pre_min1 == None:    #不接续
+            _ts.sopen = []
+            _ts.sclose = []
+            _ts.shigh = []
+            _ts.slow = []
+            _ts.svol = []
+            _ts.sholding=[]
+            _ts.sdate = []
+            _ts.stime = []
+        else:
+            _ts.sopen = pre_min1.sopen
+            _ts.sclose = pre_min1.sclose
+            _ts.shigh = pre_min1.shigh
+            _ts.slow = pre_min1.slow
+            _ts.svol = pre_min1.svol
+            _ts.sholding=pre_min1.sholding
+            _ts.sdate = pre_min1.sdate
+            _ts.stime = pre_min1.stime
+        _ts.cur = BaseObject(vopen = prices[0],
+                             vclose = prices[0],
+                             vhigh=prices[0],
+                             vlow=prices[0],
+                             open_dvol=dvols[0],#存在初始误差
+                             close_dvol=dvols[0],
+                             holding = holdings[0],
+                             xtime=time2min(times[0]),    #启动后第一min1
+                             xdate=dates[0],
+                        )  #这里对dvol的处理,使得中断恢复也必须从当日最开始开始,否则所有前述成交量被归结到第一tick
+        _ts.ilast = 0
+        _ts.modified = False    #上周期完成标志
+
+    _ts.modified = False    #上周期完成标志
+    scur = _ts.cur
+    for i in range(_ts.ilast,len(prices)):
+        tmin1 = time2min(times[i])
+        if tmin1 > scur.xtime or (tmin1 == 0 and scur.xtime > 0) or (dates[i]>scur.xdate and scur.xtime > 0):  #tcur.min1 = 0, 分钟切换用,要求其它字段均为0
+            if scur.xtime > 0:  #前一分钟不是切换标志
+                _ts.sopen.append(scur.vopen)
+                _ts.sclose.append(scur.vclose)
+                _ts.shigh.append(scur.vhigh)
+                _ts.slow.append(scur.vlow)
+                _ts.svol.append(scur.close_dvol - scur.open_dvol)
+                _ts.sholding.append(scur.holding)
+                _ts.sdate.append(scur.xdate)
+                _ts.stime.append(scur.xtime)
+            scur.vopen = scur.vclose = scur.vhigh = scur.vlow = prices[i]
+            scur.open_dvol = scur.close_dvol
+            scur.close_dvol = dvols[i]
+            scur.dvol = dvols[i]
+            scur.holding = holdings[i]
+            scur.xdate = dates[i]
+            scur.xtime = tmin1
+            _ts.modified = True
+        else:   #未切换
+            scur.vclose = prices[i]
+            scur.close_dvol = dvols[i]
+            scur.holding = holdings[i]
+            #print tmin1,'close:',scur.vclose
+            if prices[i] > scur.vhigh:
+                scur.vhigh = prices[i]
+            elif prices[i] < scur.vlow:
+                scur.vlow = prices[i]
+
+    _ts.ilast = len(prices)
+    return _ts
+

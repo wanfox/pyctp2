@@ -152,3 +152,28 @@ def MA_EXAMPLE(src,mlen,_ts=None):
     #print _ts.sa
     return _ts.ma
 
+#######
+#基本数据结构
+#######
+class TICK(object):
+    __slots__ = ['sname',
+                 'instrument',
+                 'date',
+                 'min1',
+                 'sec',
+                 'msec',
+                 'time',
+                 'holding',
+                 'dvolume',
+                 'price',
+                 'high',
+                 'low',
+                 'bid_price',
+                 'bid_volume',
+                 'ask_price',
+                 'ask_volume',
+                 'switch_min',
+                 'iorder',
+                 'dorder',
+                ]
+
