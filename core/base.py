@@ -1,8 +1,9 @@
 #-*- coding: utf-8 -*-
+
 from inspect import (
             getargspec,
         )
-import lib.decorator as decorator
+import decorator
 
 
 #####BaseObject
@@ -51,7 +52,8 @@ def quick_id(v):
         return id(v),v
     elif t  == int or t == float: #次多
         return v,None
-    elif t in [long,bool,complex,str,unicode,xrange]:
+    #elif t in [long,bool,complex,str,unicode,xrange]:
+    elif t in [bool,complex,str,range]:    #python3不再有long,unicode(默认str即为unicode)
         return v,None
     #其余都为对象，用id标识
     return id(v),v

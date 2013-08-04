@@ -163,7 +163,7 @@ def DIV(source1,source2,_ts=None):
 
     for i in range(len(_ts.ss),len(source1)):
         #print 'new data:',source1[i],source2[i]
-        r = (source1[i]+source2[i]/2)/source2[i] if source2[i] != 0 else source1[i]*1000
+        r = (source1[i]+source2[i]//2)//source2[i] if source2[i] != 0 else source1[i]*1000
         _ts.ss.append(r)
 
     return _ts.ss
@@ -180,7 +180,7 @@ def DIV1(source1,vs,_ts=None):
 
     for i in range(len(_ts.ss),len(source1)):
         #print 'new data:',source1[i]
-        _ts.ss.append((source1[i]+vs/2)/vs)
+        _ts.ss.append((source1[i]+vs//2)//vs)
 
     return _ts.ss
 
@@ -242,7 +242,7 @@ def MA(source,mlen,_ts=None):
     for i in range(len(_ts.ma),len(source)):
         #当累计个数<nlen时，求其平均值，而不是累计值/mlen
         rlen = mlen if i>=mlen else i+1
-        _ts.ma.append((ms[i]+rlen/2)/rlen) 
+        _ts.ma.append((ms[i]+rlen//2)//rlen) 
     return _ts.ma
 
 
@@ -268,7 +268,7 @@ def MA_2(source,mlen,_ts=None):
         #print ss,_ts.sa[i-mlen]
         #当累计个数<nlen时，求其平均值，而不是累计值/mlen
         rlen = mlen if mlen < i+1 else i+1
-        _ts.ma.append((ss-_ts.sa[-rlen-1]+rlen/2)/rlen) 
+        _ts.ma.append((ss-_ts.sa[-rlen-1]+rlen//2)//rlen) 
     #print _ts.sa
     return _ts.ma
 
@@ -291,7 +291,7 @@ def NMA(source,_ts=None):
         ss += source[i]
         _ts.sa.append(ss)
         #print ss,_ts.sa[-1]
-        _ts.nma.append((ss+(i+1)/2)/(i+1)) 
+        _ts.nma.append((ss+(i+1)//2)//(i+1)) 
     #print _ts.sa
     return _ts.nma
 
@@ -309,7 +309,7 @@ def CEXPMA(source,mlen,_ts=None):
 
     cur = _ts.ema[-1]
     for i in range(len(_ts.ema),len(source)):
-        cur = (source[i]*2 + cur*(mlen-1) + (mlen+1)/2)/(mlen+1)
+        cur = (source[i]*2 + cur*(mlen-1) + (mlen+1)//2)//(mlen+1)
         _ts.ema.append(cur)
     return _ts.ema
 
@@ -543,7 +543,7 @@ def REF(source,offset=1,_ts=None):
     return _ts.ref
 
 ####分钟切换
-time2min = lambda t:t/100000
+time2min = lambda t:t//100000
 
 NullMinute = BaseObject(sopen=[],sclose=[],shigh=[],slow=[],svol=[],sholding=[],sdate=[],stime=[],modified=False)
 

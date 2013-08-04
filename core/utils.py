@@ -4,7 +4,6 @@ import sys
 import functools
 
 import logging
-import lib.decorator as decorator
 
 XBASE = 100 #用于一般化的除数基数
 
@@ -32,13 +31,13 @@ def add_log2console(level = logging.INFO):
 ####根据日期得到星期数
 def date2week(iday):
     #http://blog.csdn.net/hawkfeifei/article/details/4337181
-    year = iday/10000
-    month = iday/100%100
+    year = iday//10000
+    month = iday//100%100
     day = iday%100
     if month <= 2:
         month += 12
         year -= 1
-    return (day+2*month+3*(month+1)/5+year+year/4-year/100+year/400)%7 + 1  #转化为1-7
+    return (day+2*month+3*(month+1)//5+year+year//4-year//100+year//400)%7 + 1  #转化为1-7
 
 
 ####函数参数定制

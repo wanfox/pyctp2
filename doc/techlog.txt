@@ -1,0 +1,47 @@
+
+#20130804 python3环境安装
+1. 本尊
+2. setuptools
+   https://pypi.python.org/pypi/setuptools/0.9.8
+   The recommended way to install setuptools on Windows is to download ez_setup.py and run it. The script will download the appropriate .egg file and install it for you.
+
+   python ez_setup.py
+3. pip
+   python setup.py install 
+   #在python33/Scripts下会创建pip.exe
+4. ipython
+   #https://pypi.python.org/pypi/ipython
+   或 pip install ipython3 
+
+    命令行为ipython3
+
+4.1 pyreadline #ipython的颜色设定依赖
+    https://pypi.python.org/pypi/pyreadline/2.0
+
+5. pypy3
+   需下载pypy3版本,默认版本是针对python2.X的
+   解压后,将pypy3-2.1-beta1-win32复制到d:并改名为pypy3-2.1
+   然后将PYPY_HOME改为该目录
+    
+6. python3使用的是MSC1600即VC2010, 是否须重新编译pyd?
+
+7. VS2010 Express
+   ##http://download.microsoft.com/download/5/C/1/5C156922-CA10-49D8-B7E7-9BF092C3B6EB/VS2010ExpressCHS.iso
+        共1.8G,太庞大了
+
+7.1 VC2010 Express
+    http://www.microsoft.com/visualstudio/eng/downloads
+    #http://www.microsoft.com/visualstudio/chs/products/visual-studio-express-products
+
+    Visual C++ 2010 Express
+    Build custom applications in Visual C++, a powerful language that gives deep and detailed control when building either native Windows (COM+) applications or .NET Framework-managed Windows applications. After installation, you can try this product for up to 30 days. You must register to obtain a free product key for ongoing use after 30 days.
+
+
+8. 依赖的包: decorator.py
+   https://pypi.python.org/pypi/decorator
+   下载后, 
+   python setup.py install
+
+#python3的区别
+1. print
+2. reload ==> imp.reload
