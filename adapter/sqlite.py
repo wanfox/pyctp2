@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from core.base import BaseObject
+from core.base import BaseObject,XMIN
 from core.utils import fcustom
 
 PATH_SQL_MIN1 = 'data/sqlite/min1/'
@@ -32,8 +32,9 @@ SQL_MIN_DATA_ORDER_CLAUSE = '''
 
 def min_factory(cursor,row):
     cd = cursor.description
-    assert cd[0] == 'cname', 'desc=%s' % (cd[0][0],)
-    return BaseObject(cname=row[0],idate=row[1],imin=row[2],iopen=row[3],iclose=row[4],ihigh=row[5],ilow=row[6],ivolume=row[7],iholding=row[8],itype=row[9])
+    #assert cd[0][0] == 'cname', 'desc=%s' % (cd[0][0],)
+    #return BaseObject(cname=row[0],idate=row[1],imin=row[2],iopen=row[3],iclose=row[4],ihigh=row[5],ilow=row[6],ivolume=row[7],iholding=row[8],itype=row[9])
+    return XMIN(cname=row[0],idate=row[1],imin=row[2],iopen=row[3],iclose=row[4],ihigh=row[5],ilow=row[6],ivolume=row[7],iholding=row[8],itype=row[9])
 
 def query(conn,cnames,source_clause,order_clause,dfrom=0,dto=99999999):
     '''

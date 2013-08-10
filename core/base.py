@@ -163,8 +163,8 @@ def MA_EXAMPLE(src,mlen,_ts=None):
 #基本数据结构
 #######
 class TICK(object):
-    __slots__ = ['sname',
-                 'instrument',
+    __slots__ = [
+                 'cname',
                  'date',
                  'min1',
                  'sec',
@@ -184,3 +184,35 @@ class TICK(object):
                  'dorder',
                 ]
 
+
+ITYPE_UNKNOWN = 0
+ITYPE_L2H = 1
+ITYPE_H2L = 2
+
+class XMIN(object):
+    __slots__ = [
+                 'cname',
+                 'idate',
+                 'imin',
+                 'iopen',
+                 'iclose',
+                 'ihigh',
+                 'ilow',
+                 'ivolume',
+                 'iholding',
+                 'itype',
+                ]
+    def __init__(self,cname,idate,imin,iopen,iclose,ihigh,ilow,ivolume,iholding,itype=0):
+        self.cname = cname
+        self.idate = idate
+        self.imin = imin
+        self.iopen = iopen
+        self.iclose = iclose
+        self.ihigh = ihigh
+        self.ilow = ilow
+        self.ivolume = ivolume
+        self.iholding = iholding
+        self.itype = itype
+
+    def __repr__(self):
+        return '%s:%d-%d %d-%d-%d-%d %d-%d %d' % (self.cname,self.idate,self.imin,self.iopen,self.iclose,self.ihigh,self.ilow,self.ivolume,self.iholding,self.itype)
