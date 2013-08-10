@@ -11,12 +11,12 @@ class BaseObject(object):
     def __init__(self,**kwargs):
         self.__dict__.update(kwargs)
 
-
     #has_attr/get_attr/set_attr没有必要, 系统函数hasattr/getattr/setattr已实现这些功能
     def has_attr(self,attr_name):
         return attr_name in self.__dict__
 
     def get_attr(self,attr_name):
+        #print('BaseObject,get_attr %s' % (attr_name,))
         return self.__dict__[attr_name]
 
     def set_attr(self,attr_name,value):
@@ -25,6 +25,11 @@ class BaseObject(object):
     def __repr__(self):
         return 'BaseObject'
 
+    def mydict(self):
+        return self.__dict__
+
+    def __len__(self):
+        return len(self.__dict__)
 
 class CommonObject(BaseObject):
     def __init__(self,id,**kwargs):
