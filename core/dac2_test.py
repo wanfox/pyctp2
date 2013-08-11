@@ -259,9 +259,150 @@ class ModuleTest(unittest.TestCase):
         a.append(100)
         self.assertEqual([1,1,1,2,3,4,5,6,7,8,9],REF(a,2))
 
+    def test_xminute(self):
+        ticks = [TICK(),TICK(),TICK(),TICK()]
+        ticks[0].cname='IF1203'
+        ticks[0].price = 100
+        ticks[0].time = 91400000
+        ticks[0].date = 20120111
+        ticks[0].dvolume = 10
+        ticks[0].holding = 10
+        ticks[0].min1 = time2min(ticks[0].time)
+        ticks[1].cname='IF1203'
+        ticks[1].price = 110
+        ticks[1].time = 91500000
+        ticks[1].date = 20120111
+        ticks[1].min1 = time2min(ticks[1].time)
+        ticks[1].dvolume = 30
+        ticks[1].holding = 11
+        ticks[2].cname='IF1203'
+        ticks[2].price = 115
+        ticks[2].time = 91501000
+        ticks[2].date = 20120111
+        ticks[2].dvolume = 50
+        ticks[2].holding = 12
+        ticks[2].min1 = time2min(ticks[2].time)
+        ticks[3].cname='IF1203'
+        ticks[3].price = 91
+        ticks[3].time = 91600000
+        ticks[3].date = 20120111
+        ticks[3].dvolume = 51
+        ticks[3].holding = 13
+        ticks[3].min1 = time2min(ticks[3].time)
+        cholder = BaseObject(ctick=ticks[0])
+        cm2 = XMINUTE(cholder)
+        self.assertFalse(cm2.modified)
+        self.assertEqual(None,cm2.cmin1)
+        cm2 = XMINUTE(cholder)
+        self.assertFalse(cm2.modified)
+        cholder.ctick = ticks[1]
+        cm2 = XMINUTE(cholder)
+        self.assertTrue(cm2.modified)
+        self.assertEqual(100,cm2.cmin1.iclose)
+        self.assertEqual(100,cm2.cmin1.ilow)
+        self.assertEqual(100,cm2.cmin1.ihigh)
+        self.assertEqual(914,cm2.cmin1.imin)
+        self.assertEqual(0,cm2.cmin1.ivolume)
+        self.assertEqual(base.ITYPE_UNKNOWN,cm2.cmin1.itype)
+        cholder.ctick = ticks[2]
+        cm2 = XMINUTE(cholder)
+        self.assertFalse(cm2.modified)
+        cholder.ctick = ticks[3]
+        cm2 = XMINUTE(cholder)
+        self.assertTrue(cm2.modified)
+        self.assertEqual(115,cm2.cmin1.iclose)
+        self.assertEqual(110,cm2.cmin1.ilow)
+        self.assertEqual(115,cm2.cmin1.ihigh)
+        self.assertEqual(915,cm2.cmin1.imin)
+        self.assertEqual(40,cm2.cmin1.ivolume)
+        self.assertEqual(base.ITYPE_L2H,cm2.cmin1.itype)
+        ##
+        ticks.extend([TICK(),TICK(),TICK()])
+        ticks[4].cname='IF1203'
+        ticks[4].price = 93
+        ticks[4].time = 91601000
+        ticks[4].date = 20120111
+        ticks[4].min1 = time2min(ticks[4].time)
+        ticks[4].dvolume = 80
+        ticks[4].holding = 10
+        ticks[5].cname='IF1203'
+        ticks[5].price = 90
+        ticks[5].time = 91602000
+        ticks[5].date = 20120111
+        ticks[5].dvolume = 88
+        ticks[5].holding = 10
+        ticks[5].min1 = time2min(ticks[5].time)
+        ticks[6].cname='IF1203'
+        ticks[6].price = 90
+        ticks[6].time = 91700000
+        ticks[6].date = 20120111
+        ticks[6].dvolume = 89
+        ticks[6].holding = 10
+        ticks[6].min1 = time2min(ticks[6].time)
+        cholder.ctick = ticks[4]
+        cm2 = XMINUTE(cholder)
+        self.assertFalse(cm2.modified)
+        cholder.ctick = ticks[5]
+        cm2 = XMINUTE(cholder)
+        self.assertFalse(cm2.modified)
+        cholder.ctick = ticks[6]
+        cm2 = XMINUTE(cholder)
+        self.assertTrue(cm2.modified)
+        self.assertEqual(90,cm2.cmin1.iclose)
+        self.assertEqual(90,cm2.cmin1.ilow)
+        self.assertEqual(93,cm2.cmin1.ihigh)
+        self.assertEqual(916,cm2.cmin1.imin)
+        self.assertEqual(38,cm2.cmin1.ivolume)
+        self.assertEqual(base.ITYPE_H2L,cm2.cmin1.itype)
+        ##
+        ticks.append(TICK())
+        ticks[7].cname='IF1203'
+        ticks[7].price = 91
+        ticks[7].time = 91701000
+        ticks[7].date = 20120111
+        ticks[7].dvolume = 91
+        ticks[7].holding = 10
+        ticks[7].min1 = time2min(ticks[7].time)
+        cholder.ctick = ticks[7]
+        cm2 = XMINUTE(cholder)
+        self.assertFalse(cm2.modified)
+        self.assertEqual(916,cm2.cmin1.imin)
+        ##测试终结符
+        ticks.append(TICK())
+        ticks[-1].cname='IF1203'
+        ticks[-1].price = 0
+        ticks[-1].time = 0
+        ticks[-1].date = 0
+        ticks[-1].dvolume = 0
+        ticks[-1].holding = 0
+        ticks[-1].min1 = time2min(ticks[-1].time)
+        cholder.ctick = ticks[-1]
+        cm2 = XMINUTE(cholder)
+        self.assertTrue(cm2.modified)
+        self.assertEqual(917,cm2.cmin1.imin)
+        self.assertEqual(91,cm2.cmin1.iclose)
+        self.assertEqual(90,cm2.cmin1.ilow)
+        self.assertEqual(91,cm2.cmin1.ihigh)
+        self.assertEqual(917,cm2.cmin1.imin)
+        self.assertEqual(3,cm2.cmin1.ivolume)
+        ##测试重复的终结符
+        ticks.append(TICK())
+        ticks[-1].cname='IF1203'
+        ticks[-1].price = 0
+        ticks[-1].time = 0
+        ticks[-1].date = 0
+        ticks[-1].dvolume = 0
+        ticks[-1].holding = 0
+        ticks[-1].min1 = time2min(ticks[-1].time)
+        cholder.ctick = ticks[-1]
+        cm2 = XMINUTE(cholder)
+        self.assertFalse(cm2.modified)
+        self.assertEqual(917,cm2.cmin1.imin)
+    
+    
     def test_minute(self):
-        m1 = MINUTE([])
-        self.assertEqual([],m1)
+        #m1 = MINUTE([])
+        #self.assertEqual([],m1)
         ticks = [TICK(),TICK(),TICK(),TICK()]
         ticks[0].cname='IF1203'
         ticks[0].price = 100

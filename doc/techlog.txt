@@ -45,3 +45,8 @@
 #python3的区别
 1. print
 2. reload ==> imp.reload
+
+#2013-8-11
+#decorate.py从lib改为直接安装后, pypy的执行出现问题.因为只安装到了python3
+    故只能将python33的site-packages目录下的decorator.py复制到项目目录的lib下
+    本机全路径为 C:\Python33\Lib\site-packages\decorator-3.4.0-py3.3.egg

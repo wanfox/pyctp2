@@ -234,7 +234,7 @@ def MA(source,mlen,_ts=None):
         rev = MA(source,13) #返回source的13期移动平均
         当序列中元素个数<mlen时，结果序列为到该元素为止的所有元素值的平均
     '''
-    assert mlen>0,u'mlen should > 0'
+    assert mlen>0,'mlen should > 0'
     if not _ts.initialized:
         _ts.initialized = True
         _ts.ma = []
@@ -255,7 +255,7 @@ def MA_2(source,mlen,_ts=None):
         rev = MA(source,13) #返回source的13期移动平均
         当序列中元素个数<mlen时，结果序列为到该元素为止的所有元素值的平均
     '''
-    assert mlen>0,u'mlen should > 0'
+    assert mlen>0,'mlen should > 0'
     if not _ts.initialized:
         _ts.initialized = True
         _ts.sa = [0]*mlen   #哨兵
@@ -299,7 +299,7 @@ def NMA(source,_ts=None):
 
 @indicator
 def CEXPMA(source,mlen,_ts=None):
-    assert mlen>0,u'mlen should > 0'
+    assert mlen>0,'mlen should > 0'
     if len(source) == 0:#不计算空序列，直接返回
         return []
 
@@ -546,56 +546,58 @@ def REF(source,offset=1,_ts=None):
 ####分钟切换
 time2min = lambda t:t//100000
 
-
+'''
+    周期缩放示例
+'''
 @indicator
 def MINUTE(ticks,spre_min1=None,_ts=None):
     '''
         分钟切分, 以ticks为参数
+        这个用于示范周期缩放. 但实际上并没有用到.
         _ts用于暂存。同时可用于接续历史数据
         如果spre_min1不为空，调用者需保证ticks[0].min1 > spre_min1.stime
     '''
-    if len(ticks) == 0:
-        return []
+    assert len(ticks)>0
 
     if not _ts.initialized:
         _ts.initialized = True
         _ts.smin1 = [] if spre_min1 == None else spre_min1
-        _ts.cur = BaseObject(vopen = ticks[0].price,    
+        _ts._cur = BaseObject(vopen = ticks[0].price,    
                              vclose = ticks[0].price,   
                              vhigh=ticks[0].price,      
                              vlow=ticks[0].price,       
                              open_dvol=ticks[0].dvolume,#存在初始误差
                              close_dvol=ticks[0].dvolume,
                              holding = ticks[0].holding,
-                             xtime=ticks[0].min1,    #当日第一min1
+                             min1=ticks[0].min1,    #当日第一min1
                              xdate=ticks[0].date,
                              xtype = 0,
                         )  #这里对dvol的处理,使得中断恢复也必须从当日最开始开始,否则所有前述成交量被归结到第一tick
-        _ts.ilast = 0
+        _ts._ilast = 0
         _ts.modified = False    #上周期完成标志
 
-    scur = _ts.cur
-    for i in range(_ts.ilast,len(ticks)):
+    scur = _ts._cur
+    for i in range(_ts._ilast,len(ticks)):
         tcur = ticks[i]
-        #print tcur.min1,scur.xtime
-        if tcur.min1 > scur.xtime or (tcur.min1 == 0 and scur.xtime > 0) or (tcur.date > scur.xdate and scur.xtime > 0):  
+        #print tcur.min1,scur.min1
+        if tcur.min1 > scur.min1 or (tcur.min1 == 0 and scur.min1 > 0) or (tcur.date > scur.xdate and scur.min1 > 0):  
             #tcur.min1 = 0, 分钟强制切换用,要求其它字段均为0. 可用于在确定时间已过的前提下提供强制分钟切换tick
-            if scur.xtime > 0:  #前一分钟不是切换标志
-                cmin = XMIN(tcur.cname,scur.xdate,scur.xtime,scur.vopen,scur.vclose,scur.vhigh,scur.vlow,scur.close_dvol - scur.open_dvol,scur.holding,scur.xtype)
-                _ts.smin1.append(cmin)
+            if scur.min1 > 0:  #前一分钟不是切换标志
+                cmin1 = XMIN(tcur.cname,scur.xdate,scur.min1,scur.vopen,scur.vclose,scur.vhigh,scur.vlow,scur.close_dvol - scur.open_dvol,scur.holding,scur.xtype)
+                _ts.smin1.append(cmin1)
             scur.vopen = scur.vclose = scur.vhigh = scur.vlow = tcur.price
             scur.open_dvol = scur.close_dvol
             scur.close_dvol = tcur.dvolume
             scur.dvol = tcur.dvolume
             scur.holding = tcur.holding
             scur.xdate = tcur.date
-            scur.xtime = tcur.min1
+            scur.min1 = tcur.min1
             _ts.modified = True
         else:   #未切换
             scur.vclose = tcur.price
             scur.close_dvol = tcur.dvolume
             scur.holding = tcur.holding
-            #print scur.xtime,'close:',scur.vclose
+            #print scur.min1,'close:',scur.vclose
             if tcur.price > scur.vhigh:
                 scur.vhigh = tcur.price
                 scur.xtype = ITYPE_L2H
@@ -604,9 +606,60 @@ def MINUTE(ticks,spre_min1=None,_ts=None):
                 scur.xtype = ITYPE_H2L
             _ts.modified = False
 
-    _ts.ilast = len(ticks)
+    _ts._ilast = len(ticks)
     return _ts
-    
 
 
+@indicator
+def XMINUTE(cholder,_ts=None):
+    '''
+        分钟切分, 以cholder为参数. 实际参数是cholder.ctick. 使用cholder是为了保证在多次调用中使用同一对象,从而保持缓存
+        _ts用于暂存。同时可用于接续历史数据
+    '''
+    ctick = cholder.ctick
+    if not _ts.initialized:
+        _ts.initialized = True
+        _ts._cur = BaseObject(vopen = ctick.price,    
+                             vclose = ctick.price,   
+                             vhigh= ctick.price,      
+                             vlow= ctick.price,       
+                             open_dvol= ctick.dvolume,#存在初始误差
+                             close_dvol=ctick.dvolume,
+                             holding = ctick.holding,
+                             min1=ctick.min1,    #当日第一min1
+                             xdate=ctick.date,
+                             xtype = 0,
+                        )  #这里对dvol的处理,使得中断恢复也必须从当日最开始开始,否则所有前述成交量被归结到第一tick
+        _ts.modified = False    #上周期完成标志
+        _ts.cmin1 = None
+
+    scur = _ts._cur
+
+    #print(ctick.min1,scur.min1)
+    if ctick.min1 > scur.min1 or (ctick.min1 == 0 and scur.min1 > 0) or (ctick.date > scur.xdate and scur.min1 > 0):  
+        #ctick.min1 = 0, 分钟强制切换用,要求其它字段均为0. 可用于在确定时间已过的前提下提供强制分钟切换tick
+        if scur.min1 > 0:  #前一分钟不是切换标志
+            _ts.cmin1 = XMIN(ctick.cname,scur.xdate,scur.min1,scur.vopen,scur.vclose,scur.vhigh,scur.vlow,scur.close_dvol - scur.open_dvol,scur.holding,scur.xtype)
+        scur.vopen = scur.vclose = scur.vhigh = scur.vlow = ctick.price
+        scur.open_dvol = scur.close_dvol
+        scur.close_dvol = ctick.dvolume
+        scur.dvol = ctick.dvolume
+        scur.holding = ctick.holding
+        scur.xdate = ctick.date
+        scur.min1 = ctick.min1
+        _ts.modified = True
+    else:   #未切换
+        scur.vclose = ctick.price
+        scur.close_dvol = ctick.dvolume
+        scur.holding = ctick.holding
+        #print scur.min1,'close:',scur.vclose
+        if ctick.price > scur.vhigh:
+            scur.vhigh = ctick.price
+            scur.xtype = ITYPE_L2H
+        elif ctick.price < scur.vlow:
+            scur.vlow = ctick.price
+            scur.xtype = ITYPE_H2L
+        _ts.modified = False
+    return _ts
+ 
 
