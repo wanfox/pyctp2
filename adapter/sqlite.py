@@ -1,9 +1,19 @@
 # -*- coding: utf-8 -*-
 
+import sqlite3
+
 from core.base import BaseObject,XMIN
 from core.utils import fcustom
 
 PATH_SQL_MIN1 = 'data/sqlite/min1/'
+
+def get_min1_dbname(year):
+    return PATH_SQL_MIN1 + str(year)
+
+def connect_min1_db(year):
+    dbname = get_min1_dbname(year)
+    return sqlite3.connect(dbname)
+
 
 #建表
 SQL_CREATE_MIN_TABLE = '''create table if not exists 

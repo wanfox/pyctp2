@@ -180,10 +180,17 @@ class TICK(object):
                  'ask_price',
                  'ask_volume',
                  'switch_min',
-                 'iorder',
                  'dorder',
                 ]
 
+
+def create_sep_tick(cname): #创建用于 占位/分割, 在日结束收尾最后一个TICK 的TICK
+    stick = TICK()   
+    stick.cname='000000'    #用各自的真实名称
+    stick.date = 0
+    stick.min1 = stick.sec = stick.msec = 0
+    stick.time = 0
+    return stick
 
 ITYPE_UNKNOWN = 0
 ITYPE_L2H = 1
@@ -216,3 +223,6 @@ class XMIN(object):
 
     def __repr__(self):
         return '%s:%d-%d %d-%d-%d-%d %d-%d %d' % (self.cname,self.idate,self.imin,self.iopen,self.iclose,self.ihigh,self.ilow,self.ivolume,self.iholding,self.itype)
+
+def create_sep_minute(cname):   #创建用于占位/分割, 在日结束收尾最后一个分钟  的分钟
+    return XMIN(cname,0,0,0,0,0,0,0,0)   

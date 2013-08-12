@@ -127,6 +127,25 @@ def update_min(contracts,dbname,fupdate1=update1_min):
 update_min_10 = fcustom(update_min,fupdate1 = update1_min_10)
 update_min_100 = fcustom(update_min,fupdate1 = update1_min_100)
 
+'''
+#使用举例
+In [4]: import adapter.tradeblazer as tb
+
+In [5]: import sqlite3
+
+In [6]: import adapter.sqlite as s3
+
+In [7]: conn = sqlite3.connect(s3.PATH_SQL_MIN1 + '2013')
+
+In [8]: tb.update1_min(conn,'y1309')
+20130524 11531
+
+In [9]: tb.update1_min(conn,'p1309')
+20130524 11708
+
+In [10]: tb.update1_min(conn,'OI1309')
+20130524 9650
+'''
 
 
 t2011_b = ('IF1108','IF1109','IF1110','IF1111','IF1112')
