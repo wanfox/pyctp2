@@ -7,6 +7,10 @@ from core.utils import fcustom
 
 PATH_SQL_MIN1 = 'data/sqlite/min1/'
 
+
+'''
+    connect创建相关
+'''
 def get_min1_dbname(year):
     return PATH_SQL_MIN1 + str(year)
 
@@ -14,9 +18,11 @@ def connect_min1_db(year):
     dbname = get_min1_dbname(year)
     return sqlite3.connect(dbname)
 
-
+'''
+    建表相关
+'''
 #建表
-SQL_CREATE_MIN_TABLE = '''create table if not exists 
+SQL_MIN_TABLE = '''create table if not exists 
     %(name)s(
         idate integer,
         imin integer,
@@ -31,6 +37,20 @@ SQL_CREATE_MIN_TABLE = '''create table if not exists
     )
     '''
 
+def create_table_if_not_exists(connect,tbname,sql_template):
+    ''' con = sqlite3.connect('XXX')
+        create_table_if_not_exists(con,tbname,SQL_MIN_TABLE)
+    '''
+    cursor = connect.cursor()
+    cursor.execute(sql_template % {'name':tbname})
+    connect.commit()
+    cursor.close()
+    
+create_min_table_if_not_exists = fcustom(create_table_if_not_exists,sql_template = SQL_MIN_TABLE)
+
+'''
+    查询/删除/UPDATE相关
+'''
 #查询, 需要union
 SQL_MIN_DATA_SOURCE_CLAUSE = '''select '%(name)s' as cname,idate as idate,imin,iopen,iclose,ihigh,ilow,ivolume,iholding,itype
         from %(name)s
@@ -40,13 +60,8 @@ SQL_MIN_DATA_ORDER_CLAUSE = '''
         order by idate,imin
     '''
 
-def min_factory(cursor,row):
-    cd = cursor.description
-    #assert cd[0][0] == 'cname', 'desc=%s' % (cd[0][0],)
-    #return BaseObject(cname=row[0],idate=row[1],imin=row[2],iopen=row[3],iclose=row[4],ihigh=row[5],ilow=row[6],ivolume=row[7],iholding=row[8],itype=row[9])
-    return XMIN(cname=row[0],idate=row[1],imin=row[2],iopen=row[3],iclose=row[4],ihigh=row[5],ilow=row[6],ivolume=row[7],iholding=row[8],itype=row[9])
 
-def query(conn,cnames,source_clause,order_clause,dfrom=0,dto=99999999):
+def query(conn,cnames,row_factory,source_clause,order_clause,dfrom=0,dto=99999999):
     '''
         conn:数据库连接
         cnames: 合约列表
@@ -56,7 +71,7 @@ def query(conn,cnames,source_clause,order_clause,dfrom=0,dto=99999999):
         dto: 结束日期 <, 即[dfrom,dto)
     '''
     assert len(cnames) > 0
-    conn.row_factory = min_factory
+    conn.row_factory = row_factory
     ss = [ source_clause % BaseObject(name=cname,dfrom=dfrom,dto=dto).mydict() for cname in cnames ]
     source = ' union\n'.join(ss) + order_clause
     cursor = conn.cursor()
@@ -65,19 +80,14 @@ def query(conn,cnames,source_clause,order_clause,dfrom=0,dto=99999999):
     cursor.close()
     return rows
 
-query_min = fcustom(query,source_clause = SQL_MIN_DATA_SOURCE_CLAUSE,order_clause = SQL_MIN_DATA_ORDER_CLAUSE)
+def min_factory(cursor,row):
+    cd = cursor.description
+    #assert cd[0][0] == 'cname', 'desc=%s' % (cd[0][0],)
+    #return BaseObject(cname=row[0],idate=row[1],imin=row[2],iopen=row[3],iclose=row[4],ihigh=row[5],ilow=row[6],ivolume=row[7],iholding=row[8],itype=row[9])
+    return XMIN(cname=row[0],idate=row[1],imin=row[2],iopen=row[3],iclose=row[4],ihigh=row[5],ilow=row[6],ivolume=row[7],iholding=row[8],itype=row[9])
 
+query_min = fcustom(query,row_factory=min_factory,source_clause = SQL_MIN_DATA_SOURCE_CLAUSE,order_clause = SQL_MIN_DATA_ORDER_CLAUSE)
 
-def create_table_if_not_exists(connect,tbname,sql_template):
-    ''' con = sqlite3.connect('XXX')
-        create_table_if_not_exists(con,tbname,SQL_CREATE_MIN_TABLE)
-    '''
-    cursor = connect.cursor()
-    cursor.execute(SQL_CREATE_MIN_TABLE % {'name':tbname})
-    connect.commit()
-    cursor.close()
-    
-create_min_table_if_not_exists = fcustom(create_table_if_not_exists,sql_template = SQL_CREATE_MIN_TABLE)
 
 def remove_rows(conn,tbname,tfrom=0,tto=99999999):
     '''
@@ -121,10 +131,13 @@ def insert_min_rows2(conn,tbname,rows):
     cursor.close()
 
 
+'''
+    使用举例
+'''
 import sqlite3
 def create_test_db():
     conn = sqlite3.connect(PATH_SQL_MIN1 + 'XX')
-    #create_table_if_not_exists(conn,'y1401',SQL_CREATE_MIN_TABLE)
+    #create_table_if_not_exists(conn,'y1401',SQL_MIN_TABLE)
     create_min_table_if_not_exists(conn,'y1401')
     create_min_table_if_not_exists(conn,'p1401')
     create_min_table_if_not_exists(conn,'OI1401')    

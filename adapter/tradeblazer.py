@@ -99,7 +99,7 @@ transfer1_min_10 = fcustom(transfer1_min,extractor = extractor_m1_10)
 transfer1_min_100 = fcustom(transfer1_min,extractor = extractor_m1_100)
 
 def transfer_min(contracts,dbname,ftransfer1=transfer1_min,tfrom=0,tto=99999999):
-    conn = sqlite3.connect(s3.PATH_SQL_MIN1 + dbname)
+    conn = s3.connect_min1_db(dbname)
     for contract in contracts:
         ftransfer1(conn,contract,tfrom=tfrom,tto=tto)
     conn.close()
@@ -119,7 +119,7 @@ update1_min_10 = fcustom(update1_min,extractor = extractor_m1_10)
 update1_min_100 = fcustom(update1_min,extractor = extractor_m1_100)
 
 def update_min(contracts,dbname,fupdate1=update1_min):
-    conn = sqlite3.connect(s3.PATH_SQL_MIN1 + dbname)
+    conn = s3.connect_min1_db(dbname)
     for contract in contracts:
         fupdate1(conn,contract)
     conn.close()
@@ -135,7 +135,7 @@ In [5]: import sqlite3
 
 In [6]: import adapter.sqlite as s3
 
-In [7]: conn = sqlite3.connect(s3.PATH_SQL_MIN1 + '2013')
+In [7]: conn = s3.connect_min1_db('2013')
 
 In [8]: tb.update1_min(conn,'y1309')
 20130524 11531
@@ -146,7 +146,6 @@ In [9]: tb.update1_min(conn,'p1309')
 In [10]: tb.update1_min(conn,'OI1309')
 20130524 9650
 '''
-
 
 t2011_b = ('IF1108','IF1109','IF1110','IF1111','IF1112')
 t2012_a = ('a1205','a1209',
