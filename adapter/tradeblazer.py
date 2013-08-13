@@ -85,7 +85,6 @@ def test():
     return read_min1('y1401') #+ read_min1('p1401') + read_min1('OI1401')
 
 ##转换
-import sqlite3
 import adapter.sqlite as s3
 
 ##整体导入
