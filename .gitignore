@@ -9,3 +9,5 @@
 *.log
 *.csv
 data
+*deprecated.py
+*.test.db

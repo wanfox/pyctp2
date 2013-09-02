@@ -19,6 +19,7 @@ class dispatcher(object):
         self.ghooks = hooks()
         self.env = BaseObject(data={})
         self.data = self.env.data
+        self.helper = None
 
     def register(self,cname,ctype,callback):
         '''
@@ -42,6 +43,11 @@ class dispatcher(object):
         for cname in self.data:
             self.data[cname].stick.sprice = []  #清空ticks数据
             self.data[cname].stick.sdvolume = []
+        if self.helper != None:
+            self.helper.reset()
+        else:
+            self.helper = helper(list(self.data.keys()))
+
 
     def init_ticks(cname,ticks):    #设定已发生的ticks数据
         assert cname in self.data
@@ -62,6 +68,13 @@ class dispatcher(object):
             2.日轮换时清除ticks数据
         '''
         self.ghooks[ctype].append(callback)
+
+    def receive(self,ctick):
+        '''
+            去重, 在实盘中使用, 测试直接用xtick
+        '''
+        if self.helper.is_new_tick(ctick):
+            self.xtick(ctick)
 
     def xtick(self,ctick):
         '''
@@ -118,4 +131,30 @@ class dispatcher(object):
         for cname in self.data:
             sep_min = create_sep_minute(cname)
             self.xmin(sep_min)
+ 
+
+class helper(object):
+    '''
+        重复tick过滤. 
+    '''
+    def __init__(self,contracts):
+        self.contracts = contracts
+        self.reset()
+
+    def reset(self):
+        '''
+            初始或者每日启动前重新初始化
+        '''
+        self.last_map = dict([(id,0) for id in self.contracts])
+
+    def is_new_tick(self,ctick):
+        cid = self.iserial(ctick)
+        if cid > self.last_map[ctick.cname]:
+            self.last_map[ctick.cname] = cid
+            return True
+        return False
+
+    def iserial(self,ctick):
+        return ctick.min1 << 16 + ctick.sec << 10 + ctick.msec
+
         

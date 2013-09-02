@@ -27,6 +27,9 @@ class BaseObject(object):
 
     def mydict(self):
         return self.__dict__
+    
+    def mydict_simple(self):
+        return self.__dict__
 
     def __len__(self):
         return len(self.__dict__)
@@ -223,6 +226,14 @@ class XMIN(object):
 
     def __repr__(self):
         return '%s:%d-%d %d-%d-%d-%d %d-%d %d' % (self.cname,self.idate,self.imin,self.iopen,self.iclose,self.ihigh,self.ilow,self.ivolume,self.iholding,self.itype)
+
+    def mydict(self):
+        return {'cname':self.cname,'idate':self.idate,'imin':self.imin,'iopen':self.iopen,'iclose':self.iclose,'ihigh':self.ihigh,'ilow':self.ilow,
+                'ivolume':self.ivolume,'iholding':self.iholding,'itype':self.itype}
+
+    def mydict_simple(self):    #用于更新itype
+        return {'cname':self.cname,'idate':self.idate,'imin':self.imin,'itype':self.itype}
+
 
 def create_sep_minute(cname):   #创建用于占位/分割, 在日结束收尾最后一个分钟  的分钟
     return XMIN(cname,0,0,0,0,0,0,0,0)   

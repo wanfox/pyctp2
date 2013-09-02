@@ -85,66 +85,122 @@ def test():
     return read_min1('y1401') #+ read_min1('p1401') + read_min1('OI1401')
 
 ##转换
-import adapter.sqlite as s3
+from adapter.sqlite.minute import minute
+s2011 = minute(2011)
+s2012 = minute(2012)
+s2013 = minute(2013)
+s2014 = minute(2014)
+stest = minute(2099)
 
 ##整体导入
-def transfer1_min(conn,cname,extractor=extractor_m1,tfrom=0,tto=99999999):
-    s3.create_min_table_if_not_exists(conn,cname)
-    s3.remove_rows(conn,cname,tfrom=tfrom,tto=tto)
+def transfer1_min(smin,cname,extractor=extractor_m1,tfrom=0,tto=99999999):
+    smin.create_table(cname)
+    smin.remove_by_date(cname,dfrom=tfrom,dto=tto)
     rs = read_min1(cname,extractor=extractor,tfrom=tfrom,tto=tto)
-    s3.insert_min_rows(conn,cname,rs)
+    smin.insert_rows(cname,rs)
 
 transfer1_min_10 = fcustom(transfer1_min,extractor = extractor_m1_10)
 transfer1_min_100 = fcustom(transfer1_min,extractor = extractor_m1_100)
 
-def transfer_min(contracts,dbname,ftransfer1=transfer1_min,tfrom=0,tto=99999999):
-    conn = s3.connect_min1_db(dbname)
+def transfer_min(smin,contracts,ftransfer1=transfer1_min,tfrom=0,tto=99999999):
+    smin.open_connect()
     for contract in contracts:
-        ftransfer1(conn,contract,tfrom=tfrom,tto=tto)
-    conn.close()
+        ftransfer1(smin,contract,tfrom=tfrom,tto=tto)
+    smin.close_connect()
 
 transfer_min_10 = fcustom(transfer_min,ftransfer1 = transfer1_min_10)
 transfer_min_100 = fcustom(transfer_min,ftransfer1 = transfer1_min_100)
 
 ##update导入
-def update1_min(conn,cname,extractor=extractor_m1):
-    s3.create_min_table_if_not_exists(conn,cname)
-    dlast = s3.last_date(conn,cname)
+def update1_min(smin,cname,extractor=extractor_m1):
+    smin.create_table(cname)
+    dlast = smin.last_date(cname)
     rs = read_min1(cname,extractor=extractor,tfrom=dlast+1)
-    print(dlast,len(rs))
-    s3.insert_min_rows(conn,cname,rs)
+    print(cname,dlast,len(rs))
+    smin.insert_rows(cname,rs)
 
 update1_min_10 = fcustom(update1_min,extractor = extractor_m1_10)
 update1_min_100 = fcustom(update1_min,extractor = extractor_m1_100)
 
-def update_min(contracts,dbname,fupdate1=update1_min):
-    conn = s3.connect_min1_db(dbname)
+def update_min(smin,contracts,fupdate1=update1_min):
+    smin.open_connect()
     for contract in contracts:
-        fupdate1(conn,contract)
-    conn.close()
+        fupdate1(smin,contract)
+    smin.close_connect()
 
 update_min_10 = fcustom(update_min,fupdate1 = update1_min_10)
 update_min_100 = fcustom(update_min,fupdate1 = update1_min_100)
 
 '''
 #使用举例
-In [4]: import adapter.tradeblazer as tb
+A.
+In [1]: import adapter.tradeblazer as tb
 
-In [5]: import sqlite3
+In [2]: tb.s2013.open_connect()
 
-In [6]: import adapter.sqlite as s3
+In [3]: tb.update1_min(tb.s2013,'y1309')
+0 43940
 
-In [7]: conn = s3.connect_min1_db('2013')
+In [4]: tb.update1_min(tb.s2013,'y1309')
+20130812 0
 
-In [8]: tb.update1_min(conn,'y1309')
-20130524 11531
+In [5]: tb.s2013.close_connect()
 
-In [9]: tb.update1_min(conn,'p1309')
-20130524 11708
+B.
+In [1]: import adapter.tradeblazer as tb
 
-In [10]: tb.update1_min(conn,'OI1309')
-20130524 9650
+In [2]: tb.update_min(tb.s2013,['y1309'])
+0 43940
+
+In [3]: tb.update_min(tb.s2013,['y1309'])
+20130812 0
+
+In [4]: tb.update_min(tb.s2013,['m1309','OI1309'])
+0 36392
+0 25544
+
+In [5]: tb.update_min(tb.s2013,['m1309','OI1309'])
+20130524 0
+20130812 0
+
+C.
+In [1]: import adapter.tradeblazer as tb
+
+In [2]: tb.transfer_min(tb.stest,['y1309'])
+
+In [3]: tb.transfer_min(tb.stest,['y1309'])
+
+In [4]: tb.transfer_min(tb.stest,['y1309','c1309'])
+
+
 '''
+
+'''
+数据倒入
+In [1]: import adapter.tradeblazer as tb
+In [2]: tb.transfer_2011()
+In [3]: tb.transfer_2012()
+In [4]: tb.transfer_2013()
+In [5]: tb.transfer_2014()
+'''
+def transfer_2011():
+    update_min_10(s2011,t2011_b)
+
+def transfer_2012():
+    update_min(s2012,t2012_a)
+    update_min_10(s2012,t2012_b)
+    update_min_100(s2012,t2012_c)
+
+def transfer_2013():
+    update_min(s2013,t2013_a)
+    update_min_10(s2013,t2013_b)
+    update_min_100(s2013,t2013_c)
+
+def transfer_2014():
+    update_min(s2014,t2014_a)
+    update_min_10(s2014,t2014_b)
+    update_min_100(s2014,t2014_c)
+
 
 t2011_b = ('IF1108','IF1109','IF1110','IF1111','IF1112')
 t2012_a = ('a1205','a1209',

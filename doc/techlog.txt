@@ -50,3 +50,15 @@
 #decorate.py从lib改为直接安装后, pypy的执行出现问题.因为只安装到了python3
     故只能将python33的site-packages目录下的decorator.py复制到项目目录的lib下
     本机全路径为 C:\Python33\Lib\site-packages\decorator-3.4.0-py3.3.egg
+
+
+#2013-8-25
+#1. 在pypy3-2.1下安装sqlalchemy不成功
+    错误是 termios不能导入
+#1.1 但在 pypy1.9/python2.7下可成功安装
+    初期也有错,重新解压缩sqlalchemy后成功
+    初期错误是在2.7下安装了3.X的版本(触发2to3,导致语法问题和导入问题)
+    估计是因为原来的sqlalchemy先在3.X下安装,执行了2to3导致的
+
+    说明同时要在2.X和3.X下安装sqlalchemy时, 源目录必须分开.否则必然混淆
+
