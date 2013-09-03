@@ -3,7 +3,7 @@
 import sqlite3
 from core.base import (BaseObject,)
 
-EmptyObject = BaseObject()
+EMPTY_OBJECT = BaseObject()
 
 class CTYPE(object):
     Integer = BaseObject(stype='integer',default=0)
@@ -116,7 +116,7 @@ class sobject(object):
         ss = self._get_select_clause() + self._get_condition_clause_by_value_range(vcolumn,rcolumn)
         return self._query(ss)
 
-    def query_by_raw(self,sql_condition,param=EmptyObject):
+    def query_by_raw(self,sql_condition,param=EMPTY_OBJECT):
         '''
             condition: 如 'itype=:itype'
             param: BaseObject,其__dict__为:{'type':1}
@@ -172,7 +172,7 @@ class sobject(object):
         ss = self._get_delete_clause() + self._get_condition_clause_by_value_range(vcolumn,rcolumn)
         return self._execute(ss)
 
-    def remove_by_raw(self,sql_condition,param=EmptyObject):
+    def remove_by_raw(self,sql_condition,param=EMPTY_OBJECT):
         '''
             condition: 如 'itype=:itype'
             param: BaseObject,其__dict__为:{'type':1}
@@ -245,7 +245,7 @@ class sobject(object):
         else:
             pass
 
-    def update_by_raw(self,vbo,sql_condition,param=EmptyObject):
+    def update_by_raw(self,vbo,sql_condition,param=EMPTY_OBJECT):
         '''
             condition: 如 'itype=:itype'
             param: BaseObject,其__dict__为:{'type':1}
@@ -268,6 +268,7 @@ class sobject(object):
         #return sql_query
         if self.order_bys:
             sql_query += ' order by ' + self.order_bys
+        #print(sql_query)
         cursor = self.connect.cursor()
         if param:
             cursor.execute(sql_query,param)

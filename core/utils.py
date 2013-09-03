@@ -49,3 +49,28 @@ def fcustom(func,**kwargs):
     pf.__name__ = '%s:%s' % (func.__name__,pf.paras)
     return pf
 
+
+'''
+    已排序序列的持续归并
+'''
+def merge(l1,l2):
+    '''
+        抄自http://zh.wikipedia.org/wiki/%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F#Python
+    '''
+    final=[]
+    #对l1,l2进行排序
+    l1 = sorted(l1) 
+    l2 = sorted(l2)
+    while l1 and l2:
+        if l1[0]<=l2[0]:
+            final.append(l1.pop(0))
+        else:
+            final.append(l2.pop(0))
+    return final+l1+l2
+
+def merge_m(*seqs):
+    slen = len(seqs)
+    if slen == 1:
+        return seqs[0]
+    mid = slen // 2
+    return merge(merge_m(*seqs[:mid]),merge_m(*seqs[mid:]))
