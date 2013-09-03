@@ -68,9 +68,24 @@ def merge(l1,l2):
             final.append(l2.pop(0))
     return final+l1+l2
 
-def merge_m(*seqs):
+def merge_i(*seqs):
+    '''
+        迭代版本
+        从头部取出比较,加入尾部. 这样如果初始序列长度类似,则效率最高
+    '''
+    rev = list(seqs)
+    while len(rev) > 1:
+        rev.append(merge(rev.pop(0),rev.pop(0)))
+    return rev[0]
+
+def merge_r(*seqs):
+    '''
+        递归版本
+    '''
     slen = len(seqs)
     if slen == 1:
         return seqs[0]
     mid = slen // 2
-    return merge(merge_m(*seqs[:mid]),merge_m(*seqs[mid:]))
+    return merge(merge_r(*seqs[:mid]),merge_r(*seqs[mid:]))
+
+
