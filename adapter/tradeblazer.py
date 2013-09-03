@@ -85,7 +85,7 @@ def test():
     return read_min1('y1401') #+ read_min1('p1401') + read_min1('OI1401')
 
 ##转换
-from adapter.sqlite.minute import minute
+from adapter.sqlite.minute2 import minute
 s2011 = minute(2011)
 s2012 = minute(2012)
 s2013 = minute(2013)
