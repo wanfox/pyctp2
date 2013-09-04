@@ -37,7 +37,7 @@ SQL_INSERT_MIN = '''insert into %s(idate,imin,iopen,iclose,ihigh,ilow,ivolume,ih
 SQL_UPDATE_ITYPE_FOR_MIN = '''update %s set itype=:itype where idate = :idate and imin = :imin'''
 
 
-class minute(object):
+class minute2(object):
     def __init__(self,year,path=PATH_SQL_MIN1):
         self.year = year
         self.path = path
@@ -122,11 +122,11 @@ class minute(object):
 
 '''
 测试:
-In [1]: import adapter.sqlite.minute as minute
+In [1]: import adapter.sqlite.minute2 as minute2
 
 In [2]: import adapter.tradeblazer as tb
 
-In [3]: sm1 = minute.minute(2019)
+In [3]: sm1 = minute2.minute2(2019)
 
 In [4]: sm1.open_connect()
 
@@ -138,7 +138,7 @@ In [7]: sm1.insert_rows('m1401',rs)
 
 In [8]: sm1.close_connect()
 
-In [9]: sm1 = minute.minute(2019)
+In [9]: sm1 = minute2.minute2(2019)
 
 In [10]: sm1.open_connect()
 

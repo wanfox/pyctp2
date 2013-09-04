@@ -14,7 +14,7 @@ from adapter.sqlite.cmapper import (sobject,column,CTYPE)
 PATH_SQL_MIN1 = 'data/sqlite/min1/'
 
 class minute(sobject):
-    def __init__(self,dbname,cname):
+    def __init__(self,year,cname):
         columns = [column('idate',CTYPE.Integer,'日期'),
                    column('imin', CTYPE.Integer,'分钟'),
                    column('iopen', CTYPE.Integer,'开盘'),
@@ -25,8 +25,13 @@ class minute(sobject):
                    column('iholding', CTYPE.Integer,'持仓'),
                    column('itype', CTYPE.Integer,'高低出现顺序'),
                 ]
-        sobject.__init__(self,PATH_SQL_MIN1 + dbname,cname,columns,primary_key=('idate','imin'))
+        sobject.__init__(self,PATH_SQL_MIN1 + str(year),cname,columns,primary_key=('idate','imin'))
 
+
+    @staticmethod
+    def open_connect_by_year(year):
+        #print(PATH_SQL_MIN1 + str(year))
+        return sqlite3.connect(PATH_SQL_MIN1 + str(year))
 
     def query_by_date(self,dfrom=0,dto=99999999):
         '''
