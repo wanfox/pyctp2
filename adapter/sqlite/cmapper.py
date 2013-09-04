@@ -60,15 +60,34 @@ class sobject(object):
         self.connect = None
 
     def open_connect(self):
+        '''
+            打开连接
+        '''
         if self.connect == None:
             self.connect = sqlite3.connect(self.dbname)
             self.connect.row_factory = self.row_factory
 
     def close_connect(self):
+        '''
+            关闭连接
+        '''
         self.connect.close()
         self.connect = None
 
-    def create_table(self):
+    def put_connect(self,connect):
+        '''
+            置入连接
+        '''
+        self.connect = connect
+        self.connect.row_factory = self.row_factory
+      
+    def release_connect(self):
+        '''
+            释放连接, 置入的逆操作
+        '''
+        self.connect = None
+
+    def create_table_if_not_exists(self):
         cursor = self.connect.cursor()
         
         #create table

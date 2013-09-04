@@ -18,8 +18,27 @@ class ColumnTest(unittest.TestCase):
         self.assertFalse(scolumn.check_type(100))
 
 
-class ModuleTest(unittest.TestCase):
+class MinuteConnectTest(unittest.TestCase):
+    def test_put_release(self):
+        xso = sobject(dbname,'test',[column('ctest1',CTYPE.Integer,'for test1'),])
+        xso.open_connect()
+        so = sobject(dbname,'test',[column('ctest1',CTYPE.Integer,'for test1'),])
+        self.assertFalse(so.connect)
+        so.put_connect(xso.connect)
+        self.assertTrue(so.connect)
+        so.release_connect()
+        self.assertFalse(so.connect)
+        xso.close_connect()
 
+    def test_open_close(self):
+        xso = sobject(dbname,'test',[column('ctest1',CTYPE.Integer,'for test1'),])
+        self.assertFalse(xso.connect)
+        xso.open_connect()
+        self.assertTrue(xso.connect)
+        xso.close_connect()
+        self.assertFalse(xso.connect)
+
+class MinuteTest(unittest.TestCase):
     def setUp(self):
         self.so = sobject(dbname,'test',[column('ctest1',CTYPE.Integer,'for test1'),
                                     column('ctest2',CTYPE.Integer,'for test2'),
@@ -47,10 +66,10 @@ class ModuleTest(unittest.TestCase):
 
     ##sobject
     def test_create(self):
-        self.so.create_table()
+        self.so.create_table_if_not_exists()
 
     def test_crud(self):
-        self.so.create_table()
+        self.so.create_table_if_not_exists()
         bo1 = BaseObject(ctest1=101,ctest2=102,ctest3='a10',ctest4='b10',ctest5=103,ctest6='c10',ctest7='d10')
         bo2 = BaseObject(ctest1=201,ctest2=202,ctest3='a20',ctest4='b20',ctest5=103,ctest6='c20',ctest7='d20')
         bo3 = BaseObject(ctest1=301,ctest2=302,ctest3='a30',ctest4='b30',ctest5=103,ctest6='c30',ctest7='d30')
