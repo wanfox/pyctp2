@@ -65,7 +65,6 @@ class sobject(object):
         '''
         if self.connect == None:
             self.connect = sqlite3.connect(self.dbname)
-            self.connect.row_factory = self.row_factory
 
     def close_connect(self):
         '''
@@ -79,7 +78,6 @@ class sobject(object):
             置入连接
         '''
         self.connect = connect
-        self.connect.row_factory = self.row_factory
       
     def release_connect(self):
         '''
@@ -108,7 +106,6 @@ class sobject(object):
             根据值查询
             vcolumn包含属性: name,value
         '''
-        self.connect.row_factory = self.row_factory
         ss = self._get_select_clause() + self._get_condition_clause_by_value(vcolumn)
         return self._query(ss)
 
@@ -117,7 +114,6 @@ class sobject(object):
             根据范围查询
             rcolumn包含属性name,vfrom,vto
         '''
-        self.connect.row_factory = self.row_factory
         ss = self._get_select_clause() + self._get_condition_clause_by_range(rcolumn)
         return self._query(ss)
 
@@ -126,7 +122,6 @@ class sobject(object):
             根据两个范围查询
             rcolumn1,rcolumn2均包含属性name,vfrom,vto
         '''
-        self.connect.row_factory = self.row_factory
         ss = self._get_select_clause() + self._get_condition_clause_by_range2(rcolumn1,rcolumn2)
         return self._query(ss)
 
@@ -135,7 +130,6 @@ class sobject(object):
             根据两个范围查询
             rcolumn1,rcolumn2均包含属性name,vfrom,vto
         '''
-        self.connect.row_factory = self.row_factory
         ss = self._get_select_clause() + self._get_condition_clause_by_value_range(vcolumn,rcolumn)
         return self._query(ss)
 
@@ -145,7 +139,6 @@ class sobject(object):
             param: BaseObject,其__dict__为:{'type':1}
             原始的sql方式
         '''
-        self.connect.row_factory = self.row_factory
         condition_clause = ' where %s ' % (sql_condition,)
         ss = self._get_select_clause() + condition_clause
         return self._query(ss,param)
@@ -305,13 +298,16 @@ class sobject(object):
         内务函数
     '''
     def _query(self,sql_query,param=EMPTY_OBJECT):
-        #return sql_query
+        self.connect.row_factory = self.row_factory
         if self.order_bys:
             sql_query += ' order by ' + self.order_bys
         #print(sql_query)
         return self._raw_query(sql_query,param)
 
     def _raw_query(self,sql_query,param=EMPTY_OBJECT):
+        '''
+            当不需要任何row_factory时，也可直接调用_raw_query
+        '''
         cursor = self.connect.cursor()
         cursor.execute(sql_query,param.mydict())
         rows = cursor.fetchall()
