@@ -108,6 +108,7 @@ class sobject(object):
             根据值查询
             vcolumn包含属性: name,value
         '''
+        self.connect.row_factory = self.row_factory
         ss = self._get_select_clause() + self._get_condition_clause_by_value(vcolumn)
         return self._query(ss)
 
@@ -116,6 +117,7 @@ class sobject(object):
             根据范围查询
             rcolumn包含属性name,vfrom,vto
         '''
+        self.connect.row_factory = self.row_factory
         ss = self._get_select_clause() + self._get_condition_clause_by_range(rcolumn)
         return self._query(ss)
 
@@ -124,6 +126,7 @@ class sobject(object):
             根据两个范围查询
             rcolumn1,rcolumn2均包含属性name,vfrom,vto
         '''
+        self.connect.row_factory = self.row_factory
         ss = self._get_select_clause() + self._get_condition_clause_by_range2(rcolumn1,rcolumn2)
         return self._query(ss)
 
@@ -132,18 +135,36 @@ class sobject(object):
             根据两个范围查询
             rcolumn1,rcolumn2均包含属性name,vfrom,vto
         '''
+        self.connect.row_factory = self.row_factory
         ss = self._get_select_clause() + self._get_condition_clause_by_value_range(vcolumn,rcolumn)
         return self._query(ss)
 
-    def query_by_raw(self,sql_condition,param=EMPTY_OBJECT):
+    def query_by_raw_condition(self,sql_condition,param=EMPTY_OBJECT):
         '''
             condition: 如 'itype=:itype'
             param: BaseObject,其__dict__为:{'type':1}
             原始的sql方式
         '''
+        self.connect.row_factory = self.row_factory
         condition_clause = ' where %s ' % (sql_condition,)
         ss = self._get_select_clause() + condition_clause
-        return self._query(ss,param.mydict())
+        return self._query(ss,param)
+
+    def raw_query(self,sql_query,param=EMPTY_OBJECT):
+        '''
+            完整的raw 查询
+            param为BaseObject形状的参数对
+        '''
+        self.connect.row_factory = self.row_factory
+        return self._raw_query(sql_query,param)
+
+    def raw_execute(self,sql_execute,param=EMPTY_OBJECT):
+        '''
+            完整的raw 动作
+            param为BaseObject形状的参数对
+        '''
+        return self._execute(sql_execute,param)
+
 
     def insert(self,rows):
         cursor = self.connect.cursor()
@@ -200,7 +221,7 @@ class sobject(object):
         
         condition_clause = ' where %s ' % (sql_condition,)
         ss = self._get_delete_clause() + condition_clause
-        return self._execute(ss,param.mydict())
+        return self._execute(ss,param)
 
     def update(self,rows):#按主键UPDATE
         if self.sql_update == '':
@@ -276,36 +297,33 @@ class sobject(object):
         uclause = self._get_update_clause_raw(vbo)
         if uclause != '':
             ss = uclause + condition_clause
-            return self._execute(ss,param.mydict())
+            return self._execute(ss,param)
         else:
             pass
 
     '''
         内务函数
     '''
-    def _query(self,sql_query,param=None):
+    def _query(self,sql_query,param=EMPTY_OBJECT):
         #return sql_query
         if self.order_bys:
             sql_query += ' order by ' + self.order_bys
         #print(sql_query)
+        return self._raw_query(sql_query,param)
+
+    def _raw_query(self,sql_query,param=EMPTY_OBJECT):
         cursor = self.connect.cursor()
-        if param:
-            cursor.execute(sql_query,param)
-        else:
-            cursor.execute(sql_query)
+        cursor.execute(sql_query,param.mydict())
         rows = cursor.fetchall()
         cursor.close()
         return rows
 
-    def _execute(self,sql_execute,param=None):
+    def _execute(self,sql_execute,param=EMPTY_OBJECT):
         '''
             无返回的执行
         '''
         cursor = self.connect.cursor()
-        if param:
-            cursor.execute(sql_execute,param)
-        else:
-            cursor.execute(sql_execute)
+        cursor.execute(sql_execute,param.mydict())
         self.connect.commit()
         cursor.close()
 
@@ -442,6 +460,11 @@ class sobject(object):
 
 
     def _row_factory(self,cursor,row):
+        '''
+            通用_row_factory, 每行返回一个BaseObject
+            建议因性能问题而重载
+            如在minute中被XMIN重载
+        '''
         rev = BaseObject()
         for idx, col in enumerate(cursor.description):
             #rev.__dict__[col[0]] = row[idx]

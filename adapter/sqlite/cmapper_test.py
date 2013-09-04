@@ -92,11 +92,11 @@ class MinuteTest(unittest.TestCase):
         self.assertEqual(3,len(rbos2))
         rbos = self.so.query_by_value_range(BaseObject(column=self.so.CTEST5,value=103),BaseObject(column=self.so.CTEST1,vfrom=101,vto=300))
         self.assertEqual(2,len(rbos))
-        rbos = self.so.query_by_raw('ctest2>202')
+        rbos = self.so.query_by_raw_condition('ctest2>202')
         self.assertEqual(3,len(rbos))
-        rbos = self.so.query_by_raw('ctest2>:ctest2',BaseObject(ctest2=200))
+        rbos = self.so.query_by_raw_condition('ctest2>:ctest2',BaseObject(ctest2=200))
         self.assertEqual(4,len(rbos))
-        rbos = self.so.query_by_raw('ctest3>=:ctest3',BaseObject(ctest3='a10'))
+        rbos = self.so.query_by_raw_condition('ctest3>=:ctest3',BaseObject(ctest3='a10'))
         self.assertEqual(5,len(rbos))
         #update
         #不能更新主键
@@ -204,6 +204,20 @@ class MinuteTest(unittest.TestCase):
         self.so.remove_by_raw('ctest1>:ctest1',BaseObject(ctest1=300))
         vbos = self.so.query()
         self.assertEqual(2,len(vbos))
+
+        ###测试raw
+        vbos = self.so.raw_query('select count(*) as mcount from test')
+        self.assertEqual(2,vbos[0].mcount)
+        vbos = self.so.raw_query('select count(*) as mcount from test where ctest1 < :ctest1',BaseObject(ctest1=200))
+        self.assertEqual(1,vbos[0].mcount)
+        self.so.raw_execute('delete from test where ctest1 < :ctest1',BaseObject(ctest1=200))
+        vbos = self.so.raw_query('select count(*) as mcount from test where ctest1 < :ctest1',BaseObject(ctest1=200))
+        self.assertEqual(0,vbos[0].mcount)
+        vbos = self.so.raw_query('select count(*) as mcount from test')
+        self.assertEqual(1,vbos[0].mcount)
+        self.so.raw_execute('delete from test',BaseObject(ctest1=200))
+        vbos = self.so.raw_query('select count(*) as mcount from test')
+        self.assertEqual(0,vbos[0].mcount)
 
 
 
